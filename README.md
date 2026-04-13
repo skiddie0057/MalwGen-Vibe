@@ -1,6 +1,6 @@
 # AV Testing Malw Generator
 
-Generates controlled test samples with varying hashes for antivirus quality testing.
+Generates controlled test samples with varying hashes for antivirus quality testing. THIS IS NOT FOR ACTUAL USE only for testing - it leaves your signatures everywhere in files.
 
 ## Structure
 
@@ -20,6 +20,7 @@ malware_generator/
 ## Usage
 
 ### Linux
+
 ```bash
 cd malware_generator
 chmod +x compilers/compile_linux.sh
@@ -28,6 +29,7 @@ chmod +x compilers/compile_linux.sh
 ```
 
 ### Windows
+
 ```cmd
 cd malware_generator\compilers
 compile_windows.bat
@@ -38,21 +40,23 @@ Requires MSVC compiler (cl.exe) on Windows.
 
 ## Variants
 
-| Variant | Keylogger | C2 | Obfuscation | Extras |
-|---------|-----------|-----|-------------|--------|
-| Simple | Console | Basic HTTPS | XOR strings | PRNG delays |
-| Medium | Console | Encrypted | Polymorphic | Unique build ID |
-| Complex | Console | Full upload/download | Multi-layer PRNG | System exfil |
+| Variant | Keylogger | C2                   | Obfuscation      | Extras          |
+| ------- | --------- | -------------------- | ---------------- | --------------- |
+| Simple  | Console   | Basic HTTPS          | XOR strings      | PRNG delays     |
+| Medium  | Console   | Encrypted            | Polymorphic      | Unique build ID |
+| Complex | Console   | Full upload/download | Multi-layer PRNG | System exfil    |
 
 ## Output
 
 Each compilation creates:
+
 - `simple_malw` - Original binary
 - `simple_malw.packed` - UPX compressed (if UPX available)
 
 ## Randomness
 
 Each build generates:
+
 - Unique 8-char hex build ID
 - Randomized encryption keys
 - PRNG-seeded delays and file paths
